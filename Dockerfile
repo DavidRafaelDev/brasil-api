@@ -1,14 +1,23 @@
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+FROM mcr.microsoft.com/dotnet/aspnet:6.0-nanoserver-1809 AS base
 WORKDIR /app
+EXPOSE 5212
 
-COPY *.csproj ./
-RUN dotnet restore
+ENV ASPNETCORE_URLS=http://+:5212
 
-COPY . ./
-RUN dotnet publish -c Release -o out
+FROM mcr.microsoft.com/dotnet/sdk:6.0-nanoserver-1809 AS build
+ARG configuration=Release
+WORKDIR /src
+COPY ["crud.csproj", "./"]
+RUN dotnet restore "crud.csproj"
+COPY . .
+WORKDIR "/src/."
+RUN dotnet build "crud.csproj" -c $configuration -o /app/build
 
-FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS runtime
+FROM build AS publish
+ARG configuration=Release
+RUN dotnet publish "crud.csproj" -c $configuration -o /app/publish /p:UseAppHost=false
+
+FROM base AS final
 WORKDIR /app
-COPY --from=build /app/out ./
-EXPOSE 80
-ENTRYPOINT ["dotnet", "YourAppName.dll"]
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "crud.dll"]

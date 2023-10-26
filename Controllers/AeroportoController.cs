@@ -1,3 +1,5 @@
+using crud.Models;
+using crud.Repository;
 using Microsoft.AspNetCore.Mvc;
 
 namespace crud.Controllers
@@ -5,24 +7,25 @@ namespace crud.Controllers
     [ApiController]
     [Route("aeroporto")]
     public class AeroportoController : ControllerBase
-    {
+    {   
+        private readonly IAeroportoRepository _repository;
+        private readonly IBrasilApiRepository _brasilApiRepository;
+        public AeroportoController(IAeroportoRepository repository, IBrasilApiRepository brasilApiRepository){
+            _repository = repository;  
+            _brasilApiRepository = brasilApiRepository;                                                                                                                                                                                                                                                             
+        }
         
-        [HttpGet("aeroporto/{aeroporto}")]
-        public async Task<IActionResult> GetClimaAeroporto(string aeroporto)
+       [HttpGet("{request}")]
+        public async Task<IActionResult> GetClimaAeroporto(string request)
         {
-            var client = new HttpClient();
-            var url = $"https://brasilapi.com.br/api/cptec/v1/clima/aeroporto/{aeroporto}";
-            var response = await client.GetAsync(url);
+            var response = await _brasilApiRepository.buscarClimaAeroporto(request);
 
-            if (response.IsSuccessStatusCode)
+            if (response != null)
             {
-                var data = await response.Content.ReadAsStringAsync();
-                return Ok(data);
+                await _repository.adicionaAeroporto(response);
+                return Ok(response);
             }
-            else
-            {
-                return StatusCode((int)response.StatusCode, "Erro ao buscar dados do clima do aeroporto.");
-            }
+            return Ok("Erro ao Buscar dados do aeroporto");
         }
     }
 }

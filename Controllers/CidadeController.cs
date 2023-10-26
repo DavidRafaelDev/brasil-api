@@ -6,12 +6,11 @@ namespace crud.Controllers
     [Route("cidade")]
     public class CidadeController : ControllerBase
     {
-        
-        [HttpGet("aeroporto/{aeroporto}")]
-        public async Task<IActionResult> GetClimaAeroporto(string aeroporto)
+        [HttpGet("{cidade}")]
+        public async Task<IActionResult> GetClimaCidade(string cidade)
         {
             var client = new HttpClient();
-            var url = $"https://brasilapi.com.br/api/cptec/v1/clima/aeroporto/{aeroporto}";
+            var url = $"https://brasilapi.com.br/api/cptec/v1/clima/previsao/{cidade}";
             var response = await client.GetAsync(url);
 
             if (response.IsSuccessStatusCode)
